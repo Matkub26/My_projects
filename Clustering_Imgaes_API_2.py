@@ -5,8 +5,14 @@ from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
 from keras.models import Model
 from sklearn.decomposition import PCA
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import silhouette_score
+import logging
 import tkinter as tk
 from tkinter import filedialog
+from Database_Extractor import create_layout
+
+DEFAULT_FOLDER_PATH = r'C:\Users\mkubik6\Philip Morris International\Small Scale Automation - PMI - Global - FIles (read only)\L2C (Lead to Cash)\P090 - DUPLICATE IMAGES\Test'
+logging.basicConfig(filename='clustering.log', level=logging.INFO)
 
 
 def load_data(path):
@@ -37,6 +43,8 @@ def preprocess_features(features):
 
 def cluster_images(filenames, features):
     clustering = AgglomerativeClustering(n_clusters=None, distance_threshold=50).fit_predict(features)
+    silhouette_avg = silhouette_score(features, clustering)
+    logging.info(f'Silhouette score: {silhouette_avg}')
     groups = {}
     for file, cluster in zip(filenames, clustering):
         if cluster not in groups.keys():
@@ -79,18 +87,17 @@ def process_images():
 
     status_label.config(text='Job is done')
 
-
-if __name__ == '__main__':
+def main():
+    global status_label, root, img, PATH
     root = tk.Tk()
-    root.title("Image Clustering")
-
-    label_title = tk.Label(root, text="Image Clustering Application", font=("Arial", 20))
+    create_layout(root, "Image Clustering")
+    label_title = tk.Label(root, text="Image Clustering Application", font=("Arial", 20), bg="#84E8EA")
     label_title.pack(pady=20)
 
-    path_label = tk.Label(root, text="Enter folder path:")
+    path_label = tk.Label(root, text="Enter folder path:", bg="#84E8EA")
     path_label.pack()
 
-    PATH = tk.StringVar()
+    PATH = tk.StringVar(value=DEFAULT_FOLDER_PATH)
     path_entry = tk.Entry(root, textvariable=PATH, width=50)
     path_entry.pack(pady=5)
 
@@ -100,7 +107,13 @@ if __name__ == '__main__':
     run_button = tk.Button(root, text="Run Script", command=process_images)
     run_button.pack(pady=10)
 
-    status_label = tk.Label(root, text="")
+    status_label = tk.Label(root, text="", bg="#84E8EA")
     status_label.pack(pady=10)
 
     root.mainloop()
+
+
+if __name__ == '__main__':
+    main()
+
+
